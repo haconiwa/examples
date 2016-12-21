@@ -1,0 +1,10 @@
+responses:
+  -
+    path: "/"
+    message: "index"
+  - 
+    path: "/hoge"
+    message: "hoge"
+  - 
+    path: "/fuga"
+    message: "fuga"
