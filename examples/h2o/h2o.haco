@@ -1,0 +1,92 @@
+# -*- coding: utf-8; mode: ruby -*-
+Haconiwa.define do |config|
+  config.name = "haconiwa-h2o"
+
+  h2o_conf = unless ENV['H2O_STEP2']
+               "/etc/h2o/h2o.conf"
+             else
+               "/etc/h2o/h2o-step2.conf"
+             end
+
+  # The first process when invoking haconiwa run:
+  config.init_command = ["/usr/local/bin/h2o", "--mode=master", "-c", h2o_conf]
+  # If your first process is a daemon, please explicitly daemonize by:
+  config.daemonize!
+
+  config.workdir = "/etc/h2o"
+  config.command.set_stdout(file: "/var/log/haconiwa/h2o.stdout")
+  config.command.set_stderr(file: "/var/log/haconiwa/h2o.stderr")
+
+  root = Pathname.new("/var/lib/haconiwa/h2o-root")
+  config.chroot_to root
+
+  config.bootstrap do |b|
+    b.strategy = "lxc"
+    b.os_type  = "alpine"
+  end
+
+  builddeps = %w(
+    bison
+    ca-certificates
+    cmake
+    curl
+    gcc
+    git
+    g++
+    libc-dev
+    linux-headers
+    make
+    openssl
+    perl
+    ruby
+    ruby-dev
+    wget
+    yaml-dev
+    zlib-dev
+  )
+
+  rundeps = %w(
+    libstdc++
+    perl
+  )
+
+  config.provision do |p|
+    p.run_shell <<-SHELL
+test -f /usr/local/bin/h2o && exit 0 || true
+
+apk add --no-cache --virtual=builddeps #{builddeps.join ' '}
+git clone https://github.com/unasuke/h2o.git
+cd h2o
+git checkout mruby-yaml
+cmake -DWITH_BUNDLED_SSL=on -DWITH_MRUBY=on .
+make install
+cd ..
+rm -rf h2o-*
+apk del builddeps
+apk add --no-cache --virtual=rundeps #{rundeps.join ' '}
+
+mkdir /etc/h2o
+    SHELL
+  end
+
+  config.mount_network_etc(root, host_root: "/etc")
+
+  config.add_mount_point ".", to: "#{root}/etc/h2o"
+
+  config.mount_independent "procfs"
+  config.mount_independent "sysfs"
+  config.mount_independent "devtmpfs"
+  config.mount_independent "devpts"
+  config.mount_independent "shm"
+
+  config.namespace.unshare "mount"
+  config.namespace.unshare "ipc"
+  config.namespace.unshare "uts"
+  config.namespace.unshare "pid"
+
+  # 80 番でリスンしたい時:
+  # config.capabilities.allow "cap_net_bind_service"
+  config.capabilities.allow "cap_kill"
+
+  config.resource.set_limit :NOFILE, 65536
+end
