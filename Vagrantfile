@@ -16,9 +16,11 @@ Vagrant.configure("2") do |config|
 
     apt-get update
     curl -s https://packagecloud.io/install/repositories/udzura/haconiwa/script.deb.sh | bash
-    apt-get install haconiwa
+    apt-get -y install haconiwa
 
     mkdir -p /var/log/haconiwa
     chown haconiwa: /var/log/haconiwa
+
+    apt-get -y install lxc lxc-templates
   SHELL
 end
