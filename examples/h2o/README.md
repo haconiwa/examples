@@ -16,5 +16,5 @@ sudo env H2O_STEP2=y haconiwa run h2o.haco
 
 ## Thanks
 
-@unaske's Qiita post(JA): http://qiita.com/yu_suke1994/items/a253987f797db728632f
+@unasuke's Qiita post(JA): http://qiita.com/yu_suke1994/items/a253987f797db728632f
 
