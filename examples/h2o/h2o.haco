@@ -84,8 +84,10 @@ mkdir /etc/h2o
   config.namespace.unshare "uts"
   config.namespace.unshare "pid"
 
-  # 80 番でリスンしたい時:
+  # To listen on host's 80 port:
   # config.capabilities.allow "cap_net_bind_service"
+
+  # Required to send kill to server_starter's children
   config.capabilities.allow "cap_kill"
 
   config.resource.set_limit :NOFILE, 65536
